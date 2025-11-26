@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import personService from './services/persons'
 const People = (props) => {
   return(
     <div>
       {props.people.map(henkilö => (
         <p key={henkilö.id}>
-          {henkilö.name} {henkilö.number}
+          {henkilö.name} {henkilö.number} <button onClick={props.poistaHenkilö(henkilö.id)}>delete</button>
         </p>
       ))}
     </div>
@@ -13,11 +14,8 @@ const People = (props) => {
 }
 
 const CheckPrevious = (persons, name) => {
-  
-    
   return persons.some(henkilö => henkilö.name === name);
-    
-  
+
 }
 
 const Filter = (props) => {
@@ -45,18 +43,20 @@ const PersonForm = (props) => {
       </form>
   )
 }
+
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
 
-  useEffect(() => {
-      
-      axios.get('http://localhost:3001/persons').then((response) => {
-        
-        setPersons(response.data)
+  useEffect(() => {      
+      personService.getAll().then((personData) => {
+        setPersons(personData)
       })
+      .catch(error => {
+            alert(`virhe ihmisten lataamisessa`)
+          })
     }, [])
   const HandleNameChange = (event) => {
     setNewName(event.target.value)
@@ -77,22 +77,54 @@ const App = () => {
   const AddName = (event) => {
     event.preventDefault()
     if(CheckPrevious(persons, newName)){
-      alert(`${newName} is already added to phonebook`)
+      if(window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)){
+        const henkilö = persons.find(henkilö => henkilö.name === newName)
+        const updatedHenkilö = {...henkilö, number: newNumber}
+        personService
+          .update(henkilö.id, updatedHenkilö)
+          .then(palautusHenkilö => {
+            setPersons(persons.map(henkilö => henkilö.id !== palautusHenkilö.id ? henkilö : palautusHenkilö))
+          })
+          .catch(error => {
+            alert(`${newName} has already been removed from server`)
+            setPersons(persons.filter(henkilö => henkilö.id !== henkilö.id))
+          })
       return
-    }
+    }}
 
     const henkilö = {
       name: newName,
       number: newNumber,
       id: String(persons.length + 1)
     }
-    setPersons(persons.concat(henkilö))
+    personService.create(henkilö).then(palautusHenkilö => {
+      setPersons(persons.concat(palautusHenkilö))
+    })
+    .catch(error => {
+            alert(`virhe ihmisten lataamisessa`)
+          })
     setNewName('')
     setNewNumber('')
 
 
     }
-
+  const poistaHenkilö = (id) => {
+    return () => {
+      if(window.confirm(`Delete ${persons.find(henkilö => henkilö.id === id).name}`)){
+      personService
+        .remove(id)
+        .then(() => {
+          personService
+            .getAll()
+            .then((personData) => {
+              setPersons(personData)
+            })
+            .catch(error => {
+            alert(`virhe ihmisen poistamisessa`)
+          })
+        })
+    }}
+  }
 
 
   return (
@@ -113,7 +145,10 @@ const App = () => {
 
       <h2>Numbers</h2>
 
-      <People people = {shownPersons}/>
+      <People 
+      people = {shownPersons}
+      poistaHenkilö={poistaHenkilö}
+      />
       
     </div>
   )
