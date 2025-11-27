@@ -1,143 +1,61 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
-import personService from './services/persons'
-import './index.css'
-import Notification from './components/ilmoitus'
-import handler from './components/handlingPeople'
+import Content from './components/content'
+const baseUrl = 'https://studies.cs.helsinki.fi/restcountries/api/all'
+const api_key = import.meta.env.VITE_SOME_KEY
 
 const App = () => {
-  const [persons, setPersons] = useState([])
-  const [newName, setNewName] = useState('')
-  const [newNumber, setNewNumber] = useState('')
-  const [filter, setFilter] = useState('')
-  const [errorMessage, setErrorMessage] = useState(null)
-  const [successMessage, setSuccessMessage] = useState(null)
+  const [country, setCountry] = useState('')
+  const [countries, setCountries] = useState([])
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [weather, setWeather] = useState(null);
 
-  useEffect(() => {      
-      personService.getAll().then((personData) => {
-        setPersons(personData)
+  useEffect(() => {
+    fetch(baseUrl)
+      .then(response => response.json())
+      .then(data => {    
+        setCountries(data);     
+      });
+  }, []);
+
+  useEffect(() => {
+    if(!selectedCountry){
+      return
+    }
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${selectedCountry.capital}&appid=${api_key}`)
+      .then(response => response.json())
+      .then(data => {
+        setWeather(data);
       })
-      .catch(error => {
-            alert(`virhe ihmisten lataamisessa`)
-          })
-    }, [])
-  const HandleNameChange = (event) => {
-    setNewName(event.target.value)
-  }
+  }, [selectedCountry])
 
-  const HandleNumberChange = (event) => {
-    setNewNumber(event.target.value)
-  }
-  const FilterChange = (event) => {
-    setFilter(event.target.value)
-    
-  }
-
-  const shownPersons = persons.filter(henkilö =>
-      henkilö.name.toLowerCase().includes(filter.toLowerCase())
+  useEffect(() => {
+  const filtered = countries.filter(country1 =>
+    country1.name.common.toLowerCase().includes(country.toLowerCase())
   );
 
-  const AddName = (event) => {
-    event.preventDefault()
-    if(handler.CheckPrevious(persons, newName)){
-      if(window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)){
-        const henkilö = persons.find(henkilö => henkilö.name === newName)
-        const updatedHenkilö = {...henkilö, number: newNumber}
-        personService
-          .update(henkilö.id, updatedHenkilö)
-          .then(palautusHenkilö => {
-            setPersons(persons.map(henkilö => henkilö.id !== palautusHenkilö.id ? henkilö : palautusHenkilö))
-            setSuccessMessage(
-            `${palautusHenkilö.name} number was changed succesfully`
-            )
-            setTimeout(() => {
-              setSuccessMessage(null)
-            }, 5000)
-          })
-          .catch(error => {
-            setErrorMessage(
-            `${newName} was already removed from server`
-            )
-            setTimeout(() => {
-              setErrorMessage(null)
-            }, 5000)
-            setPersons(persons.filter(henkilö => henkilö.id !== henkilö.id))
-          })
-      return
-    }}
+  if (filtered.length === 1) {
+    setSelectedCountry(filtered[0]);
+  }
+  }, [country, countries]);
 
-    const henkilö = {
-      name: newName,
-      number: newNumber
-    }
-
-    personService.create(henkilö).then(palautusHenkilö => {
-      setPersons(persons.concat(palautusHenkilö))
-      setSuccessMessage(
-        `${palautusHenkilö.name} was added successfully`
-      )
-      setTimeout(() => {
-        setSuccessMessage(null)
-      }, 5000)
-    })
-    .catch(error => {
-            alert(`virhe ihmisten lataamisessa`)
-          })
-    setNewName('')
-    setNewNumber('')
-
-
-    }
-  const poistaHenkilö = (id) => {
-    return () => {
-      if(window.confirm(`Delete ${persons.find(henkilö => henkilö.id === id).name}`)){
-      const poistettava = persons.find(henkilö => henkilö.id === id).name
-      personService
-        .remove(id)
-        .then(() => {
-          personService
-            .getAll()
-            .then((personData) => {
-              setPersons(personData)
-              setSuccessMessage(
-            `${poistettava} was deleted successfully`
-            )
-            setTimeout(() => {
-              setSuccessMessage(null)
-            }, 5000)
-            })
-            .catch(error => {
-            alert(`virhe ihmisen poistamisessa`)
-          })
-        })
-    }}
+  const CountryChange = (event) => {
+    setCountry(event.target.value)
+    setSelectedCountry(null)
   }
 
 
   return (
     <div>
-      <h1>Phonebook</h1>
-      <Notification.badNotification message={errorMessage} />
-      <Notification.goodNotification message={successMessage} />
-      <handler.Filter filter={filter} FilterChange={FilterChange}/>
+      <Content.Input country={country} countryChange={CountryChange}/>
+      <Content.CountryList 
+      country={country} 
+      countries={countries} 
+      setSelectedCountry={setSelectedCountry} 
+      weather={weather}/>
 
-      <h2>Add a new</h2>
-      <handler.PersonForm
-      filter={filter}
-      AddName={AddName}
-      newName={newName}
-      HandleNameChange={HandleNameChange}
-      newNumber={newNumber}
-      HandleNumberChange={HandleNumberChange}
-      />
-
-      <h2>Numbers</h2>
-
-      <handler.People 
-      people = {shownPersons}
-      poistaHenkilö={poistaHenkilö}
-      />
-      
+      {selectedCountry && <Content.ShowCountry 
+      country={selectedCountry} 
+      weather={weather}/>}
     </div>
   )
 
