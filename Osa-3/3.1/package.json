@@ -10,7 +10,7 @@
     "start": "node index.js",
     "dev": "node --watch index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "cd dist && npm install && npm run build"
+    "build": "cd frontEnd && npm install && npm run build"
   },
   "dependencies": {
     "cors": "^2.8.5",
