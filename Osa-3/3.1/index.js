@@ -93,9 +93,11 @@ app.put('/api/persons/:id', (request, response, next) => {
 
 //info page
 app.get('/info', (request, response) => {
-  const listLength = Person.length
   const time = new Date().toString()
-  response.send(`Phonebook has info for ${listLength} people <br><br> ${time}`)
+  Person.find({}).then(people => {
+    const listLength = people.length
+    response.send(`Phonebook has info for ${listLength} people <br><br> ${time}`)
+  })
 })
 
 
