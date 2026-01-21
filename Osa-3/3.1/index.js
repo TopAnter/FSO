@@ -32,14 +32,9 @@ app.get('/api/persons', (request, response) => {
 
 //yksittäinen henkilö
 app.get('/api/persons/:id', (request, response) => {
-  const id = request.params.id
-  const person = persons.find((person) => person.id === id)
-
-  if (person) {
+  Person.findById(request.params.id).then(person => {
     response.json(person)
-  } else {
-    response.status(404).end()
-  }
+  })
 })
 
 //luo id
@@ -68,13 +63,12 @@ app.post('/api/persons', (request, response) => {
 
   const person = {
     name: body.name,
-    number: body.number,
-    id: generateId(),
+    number: body.number
   }
 
-  persons = persons.concat(person)
-
-  response.json(person)
+  person.save().then(savedPerson => {
+    response.json(savedPerson)
+  })
 })
 
 //poista henkilö
