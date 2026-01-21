@@ -81,7 +81,12 @@ const App = () => {
       }, 5000)
     })
     .catch(error => {
-            alert(`virhe ihmisten lataamisessa`)
+            setErrorMessage(
+            `${error.response.data.error}`
+            )
+            setTimeout(() => {
+              setErrorMessage(null)
+            }, 5000)
           })
     setNewName('')
     setNewNumber('')

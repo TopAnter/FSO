@@ -4,6 +4,7 @@ const morgan = require('morgan')
 const app = express()
 const Person = require('./models/person')
 
+
 morgan.token("body", (req) => {
   if (req.method === "POST") {
     return JSON.stringify(req.body);
@@ -43,14 +44,8 @@ app.get('/api/persons/:id', (request, response, next) => {
 
 
 //lisää henkilö
-app.post('/api/persons', (request, response) => {
-  const body = request.body
-  //tarkista onko nimi ja numero
-  if (!body.name || !body.number) {
-    return response.status(400).json({
-      error: 'name or number missing',
-    })
-  }
+app.post('/api/persons', (request, response, next) => {
+    const body = request.body
 
     const person = new Person({
       name: body.name,
@@ -60,6 +55,7 @@ app.post('/api/persons', (request, response) => {
     person.save().then(savedPerson => {
       response.json(savedPerson)
     })
+    .catch(error => next(error))
 })
 
 //poista henkilö
@@ -115,6 +111,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
+  }else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
   }
 
   next(error)
