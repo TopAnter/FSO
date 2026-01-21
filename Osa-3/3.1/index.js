@@ -49,24 +49,27 @@ app.post('/api/persons', (request, response) => {
   }
 
   //tarkista onko nimi uniikki
-  if (Person.find((person) => person.name === body.name)) {
-    return response.status(400).json({
-      error: 'name must be unique',
+    Person.findOne({ name: body.name }).then(existingPerson => {
+    if (existingPerson) {
+      return response.status(400).json({
+        error: 'name must be unique',
+      })
+    }
+
+    const person = new Person({
+      name: body.name,
+      number: body.number,
     })
-  }
 
-  const person = new Person({
-    name: body.name,
-    number: body.number
-  })
-
-  person.save().then(savedPerson => {
-    response.json(savedPerson)
-  })
+    person.save().then(savedPerson => {
+      response.json(savedPerson)
+    })
+    })
 })
 
 //poista henkilö
 app.delete('/api/persons/:id', (request, response) => {
+  console.log(request.params.id)
   const id = request.params.id
   persons = persons.filter((person) => person.id !== id)
 
