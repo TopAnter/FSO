@@ -84,7 +84,7 @@ app.put('/api/persons/:id', (request, response, next) => {
       person.name = name
       person.number = number
 
-      return note.save().then((updatedperson) => {
+      return person.save().then((updatedperson) => {
         response.json(updatedperson)
       })
     })
