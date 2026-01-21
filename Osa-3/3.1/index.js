@@ -25,8 +25,8 @@ app.get('/', (request, response) => {
 
 //kaikki henkilöt
 app.get('/api/persons', (request, response) => {
-  Person.find({}).then(persons => {
-    response.json(persons)
+  Person.find({}).then(people => {
+    response.json(people)
   })
 })
 
@@ -37,16 +37,10 @@ app.get('/api/persons/:id', (request, response) => {
   })
 })
 
-//luo id
-const generateId = () => {
-  const id = Math.floor(Math.random() * 100000) + 1
-  return String(id)
-}
 
 //lisää henkilö
 app.post('/api/persons', (request, response) => {
   const body = request.body
-
   //tarkista onko nimi ja numero
   if (!body.name || !body.number) {
     return response.status(400).json({
@@ -55,16 +49,16 @@ app.post('/api/persons', (request, response) => {
   }
 
   //tarkista onko nimi uniikki
-  if (persons.find((person) => person.name === body.name)) {
+  if (Person.find((person) => person.name === body.name)) {
     return response.status(400).json({
       error: 'name must be unique',
     })
   }
 
-  const person = {
+  const person = new Person({
     name: body.name,
     number: body.number
-  }
+  })
 
   person.save().then(savedPerson => {
     response.json(savedPerson)
