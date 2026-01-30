@@ -5,6 +5,9 @@ const supertest = require('supertest')
 const Blog = require('../models/blogPost.js')
 const app = require('../app')
 const assert = require('assert')
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
+const User = require('../models/user')
 
 const api = supertest(app)
 
@@ -29,6 +32,19 @@ const blogs = [
 
 beforeEach(async () => {
   await Blog.deleteMany({})
+  await User.deleteMany({})
+
+  const passwordHash = await bcrypt.hash('sekret', 10)
+
+  const user = await new User({
+    username: 'mluukkai',
+    passwordHash
+  }).save()
+
+  token = jwt.sign(
+    { username: user.username, id: user._id },
+    process.env.SECRET
+  )
   await Blog.insertMany(blogs)
 })
 
@@ -64,6 +80,7 @@ test("blogs are added right", async () => {
   }
   await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
@@ -81,6 +98,7 @@ test("likes are automatically set to 0", async () => {
   }
   await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
@@ -94,11 +112,14 @@ test("returns bad request if title or url is missing", async () => {
     author: "Michael Chan",
     likes: 7,
   }
-  await api
+  const result = await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
     .send(newBlog)
     .expect(400)
     .expect('Content-Type', /application\/json/)
+
+  assert(result.body.error.includes('Blog validation failed: title: Path `title` is required., url: Path `url` is required.'))
 
 })
 
@@ -112,7 +133,7 @@ test('viewing a specific note', async () => {
       assert.deepStrictEqual(specificBlog.body, blog.toJSON())
     })
 
-test("blogs are added right", async () => {
+test("blogs are modified right", async () => {
   const blog = await Blog.findOne({})
 
   const newBlog = {
@@ -129,6 +150,25 @@ test("blogs are added right", async () => {
 
   const response = await api.get(`/api/blogs/${blog.id}`)
   assert.strictEqual(response.body.likes, 8)
+})
+
+test("blogs are not added when no token", async () => {
+  const newBlog = {
+    title: "React patterns",
+    author: "Michael Chan",
+    url: "https://reactpatterns.com/",
+    likes: 7,
+  }
+  const result = await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(401)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+
+  assert.strictEqual(result.body.error, 'token missing or invalid')
+  assert.strictEqual(response.body.length, blogs.length)
 })
 
 after(async () => {

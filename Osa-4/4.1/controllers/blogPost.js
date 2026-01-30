@@ -1,21 +1,25 @@
-const notesRouter = require('express').Router()
+const blogsRouter = require('express').Router()
 const Blog = require('../models/blogPost.js')
 const User = require('../models/user')
 
-notesRouter.get('/', async (request, response) => {
+const jwt = require('jsonwebtoken')
+
+
+
+
+blogsRouter.get('/', async (request, response) => {
   const blogs = await Blog.find({}).populate("user")
   response.json(blogs)
   
 })
 
-notesRouter.post('/', async (request, response) => {
+blogsRouter.post('/', async (request, response) => {
   const body = new Blog(request.body)
+  const user = request.user
 
-  const users = await User.find({})
-  const user = users[0]
 
   if (!user) {
-    return response.status(400).json({ error: 'userId missing or not valid' })
+    return response.status(401).json({ error: 'token missing or invalid' })
   }
 
   const newBlog = new Blog({
@@ -34,12 +38,12 @@ notesRouter.post('/', async (request, response) => {
   
 })
 
-notesRouter.get('/:id', async (request, response) => {
+blogsRouter.get('/:id', async (request, response) => {
   const blog = await Blog.findById(request.params.id)
   response.json(blog)
 })
 
-notesRouter.put('/:id', async (request, response) => {
+blogsRouter.put('/:id', async (request, response) => {
   const {title, author, url, likes} = request.body
 
   const blog = await Blog.findById(request.params.id)
@@ -56,4 +60,31 @@ notesRouter.put('/:id', async (request, response) => {
   
 })
 
-module.exports = notesRouter
+blogsRouter.delete('/:id', async (request, response, next) => {
+  try {
+    const user = request.user
+    if (!user) {
+    return response.status(401).json({ error: 'token missing or invalid' })
+    }
+
+    const blog = await Blog.findById(request.params.id)
+
+    if (!blog) {
+      return response.status(404).json({ error: 'blog not found' })
+    }
+    
+    // 🔥 owner check (TÄRKEIN)
+    if (blog.user.toString() !== user.id.toString()) {
+      return response.status(403).json({ error: 'only creator can delete blog' })
+    }
+
+    await Blog.findByIdAndDelete(request.params.id)
+
+    response.status(204).end()
+
+  } catch (error) {
+    next(error)
+  }
+})
+
+module.exports = blogsRouter
