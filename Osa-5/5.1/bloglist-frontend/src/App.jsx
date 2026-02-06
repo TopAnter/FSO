@@ -1,6 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+
+//components
 import Blog from './components/Blog'
 import Notification from './components/Notification'
+import Togglable from './components/Togglable'
+import CreateBlog from './components/CreateBlog'
 
 //services
 import blogService from './services/blogs'
@@ -14,22 +18,20 @@ const App = () => {
   const [password, setPassword] = useState('') 
   const [user, setUser] = useState(null)
 
-  //blogCreating usestates
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
-  const [updateBlogs, setUpdateBlogs] = useState(0)
-
   //handle messages
   const [message, setMessage] = useState(null)
   const [messageType, setMessageType] = useState(null)
 
+  //ref
+  const createBlogRef = useRef()
+
   //hanki blogit
   useEffect(() => {
-    blogService.getAll().then(blogs =>
-      setBlogs( blogs )
-    )  
-  }, [updateBlogs])
+    blogService.getAll().then(blogs =>{
+      const sorted = blogs.sort((a, b) => b.likes - a.likes)
+      setBlogs(sorted)
+  })  
+  }, [])
 
   //tarkista onko kukaan kirjautunut
   useEffect(() => {
@@ -64,27 +66,47 @@ const App = () => {
   }
 
   //blog creation handling
-  const handleCreate = async event => {
-    event.preventDefault()
-
+  const handleCreate = async (BlogObject) => {
     try {
-      await blogService.create({ title, author, url })
+      createBlogRef.current.toggleVisibility()
+      const newBlog = await blogService.create(BlogObject)
 
-      showSuccess(`a new blog ${title} by ${user.name} added`)
+      setBlogs(prev =>
+        [...prev, newBlog].sort((a, b) => b.likes - a.likes)
+      )
 
-      setTitle('')
-      setAuthor('')
-      setUrl('')
-
-      if (updateBlogs === 0) {
-        setUpdateBlogs(updateBlogs + 1)
-      }else {
-        setUpdateBlogs(updateBlogs - 1)
-      }
+      showSuccess(`a new blog ${BlogObject.title} by ${user.name} added`)
     } catch {
       showError('something went wrong')
     }
   }
+  //handle liking
+  const handleLike = async (blog) => {
+
+  const updated = await blogService.update(blog.id, {
+    ...blog,
+    likes: blog.likes + 1
+  })
+  
+
+  const newBlogs = blogs.map(b =>
+    b.id === updated.id ? updated : b
+  )
+
+  setBlogs(newBlogs.sort((a, b) => b.likes - a.likes))
+  }
+
+  const handleRemove = async (blog) => {
+    try {
+      if (window.confirm(`remove blog ${blog.title} by ${blog.author}`)) {
+        await blogService.remove(blog.id)
+        const newBlogs = blogs.filter(b => b.id !== blog.id)
+        setBlogs(newBlogs)
+        showSuccess(`a blog ${blog.title} by ${user.name} deleted`)
+      }
+    } catch {
+      showError('something went wrong')
+  }}
 
   //login form
   const loginForm = () => (
@@ -120,57 +142,13 @@ const App = () => {
     </form>
   )
 
-  //create blog form
-  const createBlog = () => (
-    <form onSubmit={handleCreate}>
-      <div>
-        <label>
-          title
-          <input
-            type="text"
-            value={title}
-            onChange={({ target }) => setTitle(target.value)}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          author
-          <input
-            type="text"
-            value={author}
-            onChange={({ target }) => setAuthor(target.value)}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          url
-          <input
-            type="text"
-            value={url}
-            onChange={({ target }) => setUrl(target.value)}
-          />
-        </label>
-      </div>
-      <button type="submit">create</button>
-      <br></br>
-      <br></br>
-      <button onClick={() => {
-        setTitle('testi title 1') 
-        setAuthor('Testaaja kalevala')
-        setUrl('http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Consider…')
-        handleCreate
-        }}>quick creation</button>
-    </form>
-  )
 
   //näytä blogit jos kirjautunut
   const showBlogs = () => {
     return blogs
     .filter(blog => blog.user?.username === user.username)
     .map(blog =>
-      <Blog key={blog.id} blog={blog} />
+      <Blog key={blog.id} blog={blog} handleLike={handleLike} handleRemove={handleRemove}/>
     )
   }
   //logout ominaisuus
@@ -206,7 +184,13 @@ const App = () => {
       {!user && loginForm()}
 
       {user && logout()}
-      {user && createBlog()}
+      {user && (
+        <Togglable buttonLabel="create new blog" ref={createBlogRef}>
+          <CreateBlog
+            createBlog={handleCreate}
+          >
+          </CreateBlog>
+        </Togglable>)}
       {user && showBlogs()}
     </div>
   )
