@@ -1,4 +1,4 @@
-import { useState} from 'react'
+import { useState } from 'react'
 
 
 const Blog = ({ blog, handleLike, handleRemove }) => {
@@ -16,13 +16,13 @@ const Blog = ({ blog, handleLike, handleRemove }) => {
     marginBottom: 5
   }
 
-  
-  
+
+
   if (showMore === false){
     return (
       <div style={blogStyle}>
-        <div> 
-          {blog.title} {blog.author} 
+        <div>
+          {blog.title} {blog.author}
         </div>
         <button onClick={() => setShowMore(true)}>view</button>
       </div>
@@ -30,16 +30,16 @@ const Blog = ({ blog, handleLike, handleRemove }) => {
   }else{
     return (
       <div style={blogStyle}>
-        <div> 
+        <div>
           {blog.title} {blog.author} <button onClick={() => setShowMore(false)}>hide</button>
         </div>
-        <div> 
-          {blog.url} 
+        <div>
+          {blog.url}
         </div>
-        <div> 
+        <div>
           {blog.likes} likes <button onClick={() => handleLike(blog)}>Like</button>
         </div>
-        <div> 
+        <div>
           {blog.user.name}
         </div>
         <button onClick={() => handleRemove(blog)}>remove</button>

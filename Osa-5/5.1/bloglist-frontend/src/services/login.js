@@ -11,7 +11,7 @@ const logout = async () => {
   window.location.reload()
 }
 
-export default { 
-    login,
-    logout
- }
+export default {
+  login,
+  logout
+}

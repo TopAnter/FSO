@@ -14,8 +14,8 @@ const App = () => {
   const [blogs, setBlogs] = useState([])
 
   //user usestates
-  const [username, setUsername] = useState('') 
-  const [password, setPassword] = useState('') 
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
   //handle messages
@@ -27,10 +27,10 @@ const App = () => {
 
   //hanki blogit
   useEffect(() => {
-    blogService.getAll().then(blogs =>{
+    blogService.getAll().then(blogs => {
       const sorted = blogs.sort((a, b) => b.likes - a.likes)
       setBlogs(sorted)
-  })  
+    })
   }, [])
 
   //tarkista onko kukaan kirjautunut
@@ -53,7 +53,7 @@ const App = () => {
       //tallenna käyttäjä
       window.localStorage.setItem(
         'loggedNoteappUser', JSON.stringify(user)
-      ) 
+      )
 
       setUser(user)
       blogService.setToken(user.token)
@@ -61,7 +61,7 @@ const App = () => {
       setPassword('')
       showSuccess(`${user.name} logged in`)
     } catch {
-        showError('wrong username or password')
+      showError('wrong username or password')
     }
   }
 
@@ -83,17 +83,17 @@ const App = () => {
   //handle liking
   const handleLike = async (blog) => {
 
-  const updated = await blogService.update(blog.id, {
-    ...blog,
-    likes: blog.likes + 1
-  })
-  
+    const updated = await blogService.update(blog.id, {
+      ...blog,
+      likes: blog.likes + 1
+    })
 
-  const newBlogs = blogs.map(b =>
-    b.id === updated.id ? updated : b
-  )
 
-  setBlogs(newBlogs.sort((a, b) => b.likes - a.likes))
+    const newBlogs = blogs.map(b =>
+      b.id === updated.id ? updated : b
+    )
+
+    setBlogs(newBlogs.sort((a, b) => b.likes - a.likes))
   }
 
   const handleRemove = async (blog) => {
@@ -106,7 +106,7 @@ const App = () => {
       }
     } catch {
       showError('something went wrong')
-  }}
+    }}
 
   //login form
   const loginForm = () => (
@@ -135,10 +135,10 @@ const App = () => {
       <br></br>
       <br></br>
       <button onClick={() => {
-        setUsername('mluukkai') 
-        setPassword('salainen') 
+        setUsername('mluukkai')
+        setPassword('salainen')
         handleLogin
-        }}>quick login</button>
+      }}>quick login</button>
     </form>
   )
 
@@ -146,10 +146,10 @@ const App = () => {
   //näytä blogit jos kirjautunut
   const showBlogs = () => {
     return blogs
-    .filter(blog => blog.user?.username === user.username)
-    .map(blog =>
-      <Blog key={blog.id} blog={blog} handleLike={handleLike} handleRemove={handleRemove}/>
-    )
+      .filter(blog => blog.user?.username === user.username)
+      .map(blog =>
+        <Blog key={blog.id} blog={blog} handleLike={handleLike} handleRemove={handleRemove}/>
+      )
   }
   //logout ominaisuus
   const logout = () => (
