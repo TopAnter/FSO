@@ -75,7 +75,7 @@ const App = () => {
         [...prev, newBlog].sort((a, b) => b.likes - a.likes)
       )
 
-      showSuccess(`a new blog ${BlogObject.title} by ${user.name} added`)
+      showSuccess(`a new blog ${BlogObject.title} by ${BlogObject.author} added`)
     } catch {
       showError('something went wrong')
     }
@@ -102,7 +102,7 @@ const App = () => {
         await blogService.remove(blog.id)
         const newBlogs = blogs.filter(b => b.id !== blog.id)
         setBlogs(newBlogs)
-        showSuccess(`a blog ${blog.title} by ${user.name} deleted`)
+        showSuccess(`a blog ${blog.title} by ${blog.author} deleted`)
       }
     } catch {
       showError('something went wrong')
@@ -146,9 +146,9 @@ const App = () => {
   //näytä blogit jos kirjautunut
   const showBlogs = () => {
     return blogs
-      .filter(blog => blog.user?.username === user.username)
+      .sort((a, b) => b.likes - a.likes)
       .map(blog =>
-        <Blog key={blog.id} blog={blog} handleLike={handleLike} handleRemove={handleRemove}/>
+        <Blog key={blog.id} blog={blog} handleLike={handleLike} handleRemove={handleRemove} userName={user.username}/>
       )
   }
   //logout ominaisuus
