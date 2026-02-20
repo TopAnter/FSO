@@ -1,9 +1,5 @@
-import { useState } from 'react'
-
+import { BrowserRouter as Router, Link } from 'react-router-dom'
 const Blog = ({ blog, handleLike, handleRemove, userName }) => {
-  //lisätietojen näyttämisen usestate
-  const [showMore, setShowMore] = useState(false)
-
   //tyylit blogeille
   const blogStyle = {
     paddingTop: 10,
@@ -13,47 +9,15 @@ const Blog = ({ blog, handleLike, handleRemove, userName }) => {
     marginBottom: 5,
   }
 
-  if (showMore === false) {
-    return (
-      <div style={blogStyle} data-testid="blog-item">
-        <div>
+  return (
+    <div style={blogStyle} data-testid="blog-item">
+      <div>
+        <Link to={`/blogs/${blog.id}`}>
           {blog.title} {blog.author}
-        </div>
-        <button onClick={() => setShowMore(true)}>view</button>
+        </Link>
       </div>
-    )
-  } else if (blog.user.username === userName) {
-    return (
-      <div style={blogStyle} data-testid="blog-item">
-        <div>
-          {blog.title} {blog.author}{' '}
-          <button onClick={() => setShowMore(false)}>hide</button>
-        </div>
-        <div>{blog.url}</div>
-        <div>
-          {blog.likes} likes{' '}
-          <button onClick={() => handleLike(blog)}>Like</button>
-        </div>
-        <div>{blog.user.name}</div>
-        <button onClick={() => handleRemove(blog)}>remove</button>
-      </div>
-    )
-  } else {
-    return (
-      <div style={blogStyle} data-testid="blog-item">
-        <div>
-          {blog.title} {blog.author}{' '}
-          <button onClick={() => setShowMore(false)}>hide</button>
-        </div>
-        <div>{blog.url}</div>
-        <div>
-          {blog.likes} likes{' '}
-          <button onClick={() => handleLike(blog)}>Like</button>
-        </div>
-        <div>{blog.user.name}</div>
-      </div>
-    )
-  }
+    </div>
+  )
 }
 
 export default Blog

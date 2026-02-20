@@ -11,6 +11,7 @@ const CreateBlog = ({ createBlog }) => {
       title: title,
       author: author,
       url: url,
+      comments: [],
     })
 
     setTitle('')

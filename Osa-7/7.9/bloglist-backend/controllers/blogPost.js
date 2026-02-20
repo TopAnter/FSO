@@ -83,4 +83,27 @@ blogsRouter.delete('/:id', async (request, response, next) => {
   }
 })
 
+blogsRouter.post('/:id/comments', async (req, res) => {
+  const { id } = req.params
+  const { comment } = req.body
+
+  if (!comment) {
+    return res.status(400).json({ error: 'Comment missing' })
+  }
+
+  try {
+    const blog = await Blog.findById(id)
+    if (!blog) {
+      return res.status(404).json({ error: 'Blog not found' })
+    }
+
+    blog.comments.push(comment) // lisää uusi kommentti
+    const savedBlog = await blog.save()
+
+    res.status(201).json(savedBlog)
+  } catch (error) {
+    res.status(500).json({ error: 'Something went wrong' })
+  }
+})
+
 module.exports = blogsRouter

@@ -6,6 +6,7 @@ import {
   Routes,
   Route,
   Link,
+  useParams,
   Navigate,
   useNavigate,
   useMatch,
@@ -16,6 +17,7 @@ import Blog from './components/Blog'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
 import CreateBlog from './components/CreateBlog'
+import CreateComment from './components/createComment'
 import User from './components/User'
 
 //services
@@ -45,6 +47,7 @@ const App = () => {
 
   //ref
   const createBlogRef = useRef()
+  const createCommentRef = useRef()
 
   //query
   const queryClient = useQueryClient()
@@ -109,6 +112,18 @@ const App = () => {
       showError('something went wrong')
     }
   }
+  const handleCommentCreate = async (commentObject) => {
+    try {
+      createCommentRef.current.toggleVisibility()
+      await blogService.addComment(commentObject)
+
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+
+      showSuccess(`a new comment ${comment} added`)
+    } catch {
+      showError('something went wrong')
+    }
+  }
   //handle liking
   const handleLike = async (blog) => {
     await blogService.update(blog.id, {
@@ -160,10 +175,10 @@ const App = () => {
       <br></br>
       <br></br>
       <button
+        type="button"
         onClick={() => {
           setUsername('mluukkai')
           setPassword('salainen')
-          handleLogin
         }}
       >
         quick login
@@ -229,7 +244,7 @@ const App = () => {
     }, 5000)
   }
 
-  const main = () => {
+  const Main = () => {
     return (
       <div>
         <h2>blogs</h2>
@@ -246,14 +261,72 @@ const App = () => {
     )
   }
 
-  const userView = () => (
+  const UsersView = () => (
     <div>
       <h2>blogs</h2>
       {user && logout()}
       <h2>users</h2>
-      {showUsers()}
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>blogs created</th>
+          </tr>
+        </thead>
+
+        <tbody>{showUsers()}</tbody>
+      </table>
     </div>
   )
+
+  const UserView = () => {
+    const { id } = useParams()
+    const user = users?.find((u) => u.id === id)
+    return (
+      <div>
+        <h2>blogs</h2>
+        {user && logout()}
+        <h2>{user.name}</h2>
+        <h3>added blogs</h3>
+        <ul>
+          {user.blogs.map((b) => (
+            <li key={b.id}>{b.title}</li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+
+  const BlogView = () => {
+    const { id } = useParams()
+    const blog = blogs?.find((u) => u.id === id)
+    return (
+      <div>
+        <h2>blogs</h2>
+        {user && logout()}
+        <h1>{blog.title}</h1>
+        <a href={blog.url}>{blog.url}</a>
+        <br></br>
+        <span>{blog.likes} likes</span>
+        <button>like</button>
+        <p>added by {blog.user.name}</p>
+        <h2>comments</h2>
+        {
+          <Togglable buttonLabel="create new comment" ref={createCommentRef}>
+            <CreateComment
+              createComment={handleCommentCreate}
+              blogId={blog.id}
+            ></CreateComment>
+          </Togglable>
+        }
+        <ul>
+          {blog.comments.map((c, i) => (
+            <li key={i}>{c}</li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
 
   const padding = {
     padding: 5,
@@ -261,20 +334,23 @@ const App = () => {
 
   return (
     <div>
-      <div>
-        <Link style={padding} to="/">
-          home
-        </Link>
-        <Link style={padding} to="/users">
-          users
-        </Link>
-      </div>
-      <div>
+      <Router>
+        <div>
+          <Link style={padding} to="/">
+            home
+          </Link>
+          <Link style={padding} to="/users">
+            users
+          </Link>
+        </div>
+
         <Routes>
-          <Route path="/users" element={<userView />} />
-          <Route path="/" element={<main />} />
+          <Route path="/users" element={<UsersView />} />
+          <Route path="/" element={<Main />} />
+          <Route path="/users/:id" element={<UserView />} />
+          <Route path="/blogs/:id" element={<BlogView />} />
         </Routes>
-      </div>
+      </Router>
     </div>
   )
 }
