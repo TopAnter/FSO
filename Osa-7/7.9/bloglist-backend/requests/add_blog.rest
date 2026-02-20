@@ -1,0 +1,11 @@
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1sdXVra2FpMiIsImlkIjoiNjk3YzZkMDgxOWEwODg1N2Y5NGIyNzJkIiwiaWF0IjoxNzY5NzYyMDk4fQ.WiOR2F3F2QUnjewAU9lezAmVlNtKZfc8qq6z461y9Es
+
+
+{
+    "title": "Go To Statement Considered Harmful2",
+    "author": "Edsger W. Dijkstra",
+    "url": "http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html",
+    "likes": 5
+}
