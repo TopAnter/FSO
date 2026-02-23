@@ -2,14 +2,19 @@ import ReactDOM from 'react-dom/client'
 import { useState, useRef } from 'react'
 
 import {
+  Nav,
+  Page,
+  NavLink,
+  StyledSpan,
+  StyledButton,
+  StyledDiv,
+  StyledLink,
+} from './styles/styled'
+import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Link,
   useParams,
-  Navigate,
-  useNavigate,
-  useMatch,
 } from 'react-router-dom'
 
 //components
@@ -207,18 +212,18 @@ const App = () => {
 
   //logout ominaisuus
   const logout = () => (
-    <div>
+    <StyledSpan>
       {user.name} logged in
-      <button
+      <StyledButton
         onClick={() => {
           loginService.logout()
           userDispatch({ type: 'LOGOUT' })
         }}
       >
         logout
-      </button>
+      </StyledButton>
       <p></p>
-    </div>
+    </StyledSpan>
   )
 
   //error apufunktiot
@@ -246,25 +251,25 @@ const App = () => {
 
   const Main = () => {
     return (
-      <div>
+      <StyledDiv>
         <h2>blogs</h2>
         <Notification />
         {!user && loginForm()}
-        {user && logout()}
         {user && (
           <Togglable buttonLabel="create new blog" ref={createBlogRef}>
             <CreateBlog createBlog={handleCreate}></CreateBlog>
           </Togglable>
         )}
+        <p></p>
         {user && showBlogs()}
-      </div>
+      </StyledDiv>
     )
   }
 
   const UsersView = () => (
-    <div>
+    <StyledDiv>
       <h2>blogs</h2>
-      {user && logout()}
+
       <h2>users</h2>
       <table>
         <thead>
@@ -276,16 +281,18 @@ const App = () => {
 
         <tbody>{showUsers()}</tbody>
       </table>
-    </div>
+    </StyledDiv>
   )
 
   const UserView = () => {
     const { id } = useParams()
     const user = users?.find((u) => u.id === id)
+
+    if (!user) return null
+
     return (
-      <div>
+      <StyledDiv>
         <h2>blogs</h2>
-        {user && logout()}
         <h2>{user.name}</h2>
         <h3>added blogs</h3>
         <ul>
@@ -293,7 +300,7 @@ const App = () => {
             <li key={b.id}>{b.title}</li>
           ))}
         </ul>
-      </div>
+      </StyledDiv>
     )
   }
 
@@ -301,14 +308,14 @@ const App = () => {
     const { id } = useParams()
     const blog = blogs?.find((u) => u.id === id)
     return (
-      <div>
+      <StyledDiv>
         <h2>blogs</h2>
-        {user && logout()}
         <h1>{blog.title}</h1>
-        <a href={blog.url}>{blog.url}</a>
+        <StyledLink href={blog.url}>Link to blog's site</StyledLink>
+        <br></br>
         <br></br>
         <span>{blog.likes} likes</span>
-        <button>like</button>
+        <StyledButton onClick={() => handleLike(blog)}>like</StyledButton>
         <p>added by {blog.user.name}</p>
         <h2>comments</h2>
         {
@@ -324,7 +331,7 @@ const App = () => {
             <li key={i}>{c}</li>
           ))}
         </ul>
-      </div>
+      </StyledDiv>
     )
   }
 
@@ -333,16 +340,18 @@ const App = () => {
   }
 
   return (
-    <div>
+    <Page>
       <Router>
-        <div>
-          <Link style={padding} to="/">
+        <Nav>
+          <NavLink style={padding} to="/">
             home
-          </Link>
-          <Link style={padding} to="/users">
+          </NavLink>
+          <NavLink style={padding} to="/users">
             users
-          </Link>
-        </div>
+          </NavLink>
+
+          {user && logout()}
+        </Nav>
 
         <Routes>
           <Route path="/users" element={<UsersView />} />
@@ -351,7 +360,7 @@ const App = () => {
           <Route path="/blogs/:id" element={<BlogView />} />
         </Routes>
       </Router>
-    </div>
+    </Page>
   )
 }
 

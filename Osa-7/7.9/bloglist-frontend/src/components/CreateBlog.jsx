@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { StyledButton, StyledInput } from '../styles/styled'
 
 const CreateBlog = ({ createBlog }) => {
   const [title, setTitle] = useState('')
@@ -27,7 +28,7 @@ const CreateBlog = ({ createBlog }) => {
         <div>
           <label>
             title
-            <input
+            <StyledInput
               type="text"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
@@ -37,7 +38,7 @@ const CreateBlog = ({ createBlog }) => {
         <div>
           <label>
             author
-            <input
+            <StyledInput
               type="text"
               value={author}
               onChange={(event) => setAuthor(event.target.value)}
@@ -47,17 +48,18 @@ const CreateBlog = ({ createBlog }) => {
         <div>
           <label>
             url
-            <input
+            <StyledInput
               type="text"
               value={url}
               onChange={(event) => setUrl(event.target.value)}
             />
           </label>
+          <p></p>
         </div>
-        <button type="submit">create</button>
+        <StyledButton type="submit">create</StyledButton>
         <br></br>
         <br></br>
-        <button
+        <StyledButton
           type="button"
           onClick={() => {
             setTitle('testi title 1')
@@ -68,7 +70,7 @@ const CreateBlog = ({ createBlog }) => {
           }}
         >
           quick creation
-        </button>
+        </StyledButton>
       </form>
     </div>
   )

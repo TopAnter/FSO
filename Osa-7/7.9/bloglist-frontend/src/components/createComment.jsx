@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { StyledButton, StyledInput } from '../styles/styled'
 
 const CreateComment = ({ createComment, blogId }) => {
   const [commentInput, setCommentInput] = useState('')
@@ -21,14 +22,14 @@ const CreateComment = ({ createComment, blogId }) => {
         <div>
           <label>
             comment
-            <input
+            <StyledInput
               type="text"
               value={commentInput}
               onChange={(event) => setCommentInput(event.target.value)}
             />
           </label>
         </div>
-        <button type="submit">add comment</button>
+        <StyledButton type="submit">add comment</StyledButton>
       </form>
     </div>
   )
